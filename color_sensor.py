@@ -1,7 +1,6 @@
-from pybricks.ev3devices import ColorSensor
+from pybricks.pupdevices import ColorSensor
 
-from BetterClasses.EdgeDetectorEx import *
-from Settings.constants import *
+from edge_detector import EdgeDetectorEx
 
 #enhanced color sensor class, with an edge detector for reaching the target color
 #   works just with reflection (for now). Maybe we'll generalize a bit more, if needed

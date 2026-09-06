@@ -1,6 +1,10 @@
-#!/usr/bin/env pybricks-micropython
+"""
+Program entry point -- this is the file you run from Pybricks Code.
 
-from RunManager import *
+Everything you actually edit lives in runs.py (your runs) and config.py
+(your ports and motor directions).
+"""
 
-while True:
-    core.update()
+from runs import selector
+
+selector.run_forever()

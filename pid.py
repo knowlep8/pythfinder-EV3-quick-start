@@ -37,3 +37,14 @@ class PIDController():
 
         return power
 
+    def reset(self):
+        """Clear accumulated state so the next run starts clean.
+
+        Without this, the stored past_error/past_time carry over between runs
+        and produce a derivative spike on the first iteration of the next one.
+        """
+        self.__integral = 0
+        self.__past_error = 0
+        self.__past_time = 0
+        self.__derivative_timer.reset()
+        self.__current_time = 0

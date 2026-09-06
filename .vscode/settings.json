@@ -2,6 +2,9 @@
 {
 	"files.eol": "\n",
 	"debug.openDebug": "neverOpen",
-	"python.linting.enabled": false,
-	"python.languageServer": "Pylance" // change this to "None" if you don't want syntax errors
+	// Pybricks type stubs are not on PyPI for the hub modules, so Pylance will
+	// flag `from pybricks... import ...` as unresolved. That is expected.
+	"python.analysis.diagnosticSeverityOverrides": {
+		"reportMissingImports": "none"
+	}
 }

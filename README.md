@@ -1,240 +1,233 @@
 <p align="center" style="margin-bottom: 10px;">
-      <img src="https://i.ibb.co/mHSpjdL/pyth-finder-logo-ev3-quickstart.png" alt="pyth-finder-ev3-logo" border="0">
+      <img src="https://i.ibb.co/mHSpjdL/pyth-finder-logo-ev3-quickstart.png" alt="pyth-finder-logo" border="0">
 </p>
 
 ![version_badge](https://img.shields.io/badge/alpha-0.0.4-006400)
-![quickstart](https://img.shields.io/badge/EV3_implementation-006400)
+![quickstart](https://img.shields.io/badge/SPIKE_Prime_implementation-006400)
 ![license](https://img.shields.io/badge/license-MIT-62e39e)
 
+A [PythFinder][1] trajectory runner for the **LEGO SPIKE Prime / Robot Inventor
+hub**, running [Pybricks][0].
+
+> Looking for the EV3 version? It lives on the `main` branch. This branch is a
+> port, not a superset: the hub has no filesystem, no threading, and only three
+> usable buttons, so several things work differently. See
+> [What changed from the EV3 version](#what-changed-from-the-ev3-version).
 
 # Installation
+
 ## Pybricks
-Prior to attempting to utilize our library on a competition EV3 robot, it is crucial that you have a solid understanding of the `MicroPython` software.
 
-If you are new to MicroPython and have not worked with it previously, you need to carefully follow [**THIS INSTALLATION GUIDE**](0) for *`Pybricks`* tailored to your specific devices.
+Install the Pybricks firmware on your hub by following the
+[**official guide**][0]. Everything here runs in the browser at
+[code.pybricks.com][2] -- there is no VS Code extension for Pybricks, so the
+usual workflow is to edit these files locally and paste or upload them there.
 
+You do **not** need to install anything with pip to run the robot. The only
+thing that runs on your computer is `tools/txt_to_py.py`, which needs plain
+Python 3 and no dependencies.
 
-Furthermore, to enable auto-complete features when coding, ensure you install `pybricks`, `pybricksdev`, and `pybricks-stubs` using **pip** in your development environment. If you choose not to use auto-complete, you can adjust the settings by editing the `settings.json` file according to the instructions in the comments.
+## This project
 
+Clone the repo and check out this branch:
 
-## PythFinder
+```bash
+git clone https://github.com/omegacoreFLL/pythfinder-EV3-quick-start.git
+cd pythfinder-EV3-quick-start
+git checkout spike-port
+```
 
-To initiate the process of using the quick start guide, you will first need to clone the repository to your local environment. This can be accomplished by carefully following the outlined steps below:
+In [code.pybricks.com][2], create a project and add each `.py` file from the
+repository root. Pybricks bundles any module you `import` along with your main
+program, so all of them travel to the hub together.
 
-1) Click on the *Code* button from the GitHub page;
-2) Copy the project url;
-
-<p align="center">
-    <img src="https://i.ibb.co/MphJscW/img1-ev3.png" alt="install-1">
-</p>
-
-3) Open Visual Studio code and click on 'Clone Git Repository' on the Welcome page. Alternatively, you can find this button in the **Explorer** tab;
-
-<p align="center">
-    <img src="https://i.ibb.co/khMvVjw/img2-ev3.png" alt="install-2">
-</p>
-
-4) A window should pop on the top of the screen. Paste the link;
-5) Click on 'Clone from URL' button 
-(make sure you are connected to your GitHub account);
-
-<p align="center">
-    <img src="https://i.ibb.co/JmQ9zZG/img3-ev3.png" alt="install-3">
-</p>
-
-
-6) Select the folder you want to clone the project into
-
-<p align="center">
-    <img src="https://i.ibb.co/5MDHYKF/img4-ev3.png" alt="install-4">
-</p>
-
-And you're done!! Now you can play with all the features!
-
-<p align="center">
-    <img src="https://i.ibb.co/Yk7nvkj/img5-ev3.png" alt="install-5">
-</p>
-
+> **Files must sit flat, side by side.** Pybricks does not support
+> subdirectories, which is why this branch has no `BetterClasses/`,
+> `Controllers/` or `Settings/` folders. `Trajectory/` and `tools/` stay on
+> your computer and are never uploaded.
 
 <br/>
-
 
 # Usage
 
 ## Setup
-Before you begin using the library, it is essential to customize your specific hardware configuration. This can be achieved by accessing the `hardware.cfg` file located in the **Settings** folder.
 
-<p align="center">
-    <img src="https://i.ibb.co/93ZrNbf/img6-ev3.png" alt="setup-1">
-</p>
-
-When you open this file, you can modify the `ports` assigned to each *motor* and *sensor*, as well as adjust the direction of the motors to suit YOUR configuration. 
-
-Please be aware that **two wheel motors and a gyro sensor are required** for the library to function properly. The inclusion of additional sensors and motors is *optional*. If you do not have some of these components, simply set their value to `None`.
-
-```ini
-# hardware.cfg
-
-[Motors]
-LeftWheelPort = C
-RightWheelPort = D
-LeftTaskPort = B
-RightTaskPort = A
-
-[Sensors]
-GyroPort = 3
-ColorSensorLeftPort = 4
-ColorSensorRightPort = 2
-AttachmentColorSensorPort = None
-
-[Directions]
-LeftWheelDirection = CLOCKWISE
-RightWheelDirection = CLOCKWISE
-LeftTaskDirection = COUNTERCLOCKWISE
-RightTaskDirection = COUNTERCLOCKWISE
-```
-
-<br/>
-
-And with that, you'll have **completed** the essential setup!
-
-For those seeking to fine-tune their configuration, additional **advanced settings** can be found in the `constants.py` file. This file contains detailed explanations for each configurable value, with comprehensive comments to guide you through the adjustments.
-
-However, **we strongly recommend** that you still verify the gyro sensor's orientation within the `constants.py` file.
-
-## General Information
-
-### main.py
-
-The `main.py` file serves as the core of the program, housing the **main loop** that drives the entire code.<br/>
-When launching the code from the brick's storage, you must execute **THIS** file.
-
+Open **`config.py`** and describe your robot. This is the only file you have to
+touch to get moving:
 
 ```python
-#!/usr/bin/env pybricks-micropython
+# how the hub is mounted
+HUB_TOP_SIDE = Axis.Z
+HUB_FRONT_SIDE = Axis.X
 
-from RunManager import *
+# motors -- the hub has six identical ports, A through F
+LEFT_WHEEL_PORT = Port.A
+RIGHT_WHEEL_PORT = Port.B
+LEFT_TASK_PORT = Port.C
+RIGHT_TASK_PORT = Port.D
 
-while True:
-    core.update()
+# sensors go in those same A-F ports
+COLOR_SENSOR_LEFT_PORT = Port.E
+COLOR_SENSOR_RIGHT_PORT = Port.F
+ATTACHMENT_COLOR_SENSOR_PORT = None
+
+# flip one of these if a wheel spins backwards
+LEFT_WHEEL_DIRECTION = Direction.CLOCKWISE
+RIGHT_WHEEL_DIRECTION = Direction.CLOCKWISE
 ```
 
-### RunManager.py
-The core of the program is managed by the `RunManager.py` file, where you should write **your custom code**.
+**Two wheel motors are required.** Task motors and color sensors are optional --
+set a port to `None` if you do not have that part.
 
-By default, this file initializes a robot instance and includes methods for a total of **7 runs**.
+`HUB_TOP_SIDE` / `HUB_FRONT_SIDE` replace the EV3's external gyro and its four
+orientation flags. Describe how the hub sits in your build and Pybricks reports
+the heading in robot coordinates for you.
 
-<p align="center">
-    <img src="https://i.ibb.co/bmR7G12/img7-ev3.png" alt="run-manager">
-</p>
+Finer tuning -- PID gains, the take-your-hands-off delay, the battery
+reference -- lives in **`constants.py`**, commented inline.
 
+## Running
 
-
-Within these methods, you can invoke trajectory-following routines or implement external logic. An example 'test' trajectory is already provided and will be automatically executed to demonstrate the setup.
-
-***Using the trajectory data is straightforward***. 
-
-1) Place your text file generated by PythFinder in the **Trajectory/TXT** folder;
-
-<p align="center">
-    <img src="https://i.ibb.co/8KYNpNg/img8-ev3.png" alt="trajectory-1">
-</p>
-
-2) To create a new trajectory object, start by calling the `.receive()` method and provide the name of the text file as an argument. If your trajectory includes markers, also invoke the `.withMarkers()` method, passing a tuple containing the corresponding methods for each marker in chronological order;
-
-<p align="center">
-    <img src="https://i.ibb.co/rF1f5V8/img9-ev3.png" alt="trajectory-2">
-</p>
-
-3) Follow the trajectory with the `.follow()` method, passing the robot object as an argument.
-
-<p align="center">
-    <img src="https://i.ibb.co/SsD2tbk/img10-ev3.png" alt="trajectory-3">
-</p>
-
-
-
-While following the trajectory, the robot iterates through all the timestamps from the text file, adjusting the motor powers accordingly.<br/>
-This method is **`highly efficient`** as it involves minimal calculations, with the only computation being the heading PID correction.
-
-<br/>
-
-To append a run to each of the buttons, you will need to:
-1) Create a reparate function for each of your run programs;
+`main.py` is what you run on the hub. It is deliberately tiny:
 
 ```python
-def run1():
+from runs import selector
+
+selector.run_forever()
+```
+
+Everything you actually write goes in **`runs.py`**.
+
+### Selecting runs
+
+The hub only has `LEFT`, `RIGHT` and `CENTER`, so the EV3's one-run-per-button
+scheme is gone. Instead the display shows a **letter**:
+
+| Button | What it does |
+|---|---|
+| **CENTER** | run the letter currently shown |
+| **RIGHT** | jog to the next letter, without running it |
+| **LEFT** | jog back a letter, without running it |
+
+When a run finishes, the selector **advances to the next letter by itself**.
+So in a match where nothing goes wrong, the technician only ever taps CENTER.
+`LEFT`/`RIGHT` are there for when something does: skip a run, or go back and
+repeat one.
+
+This is Pybricks' own `hub_menu()` idea, minus the part where you have to
+re-select every single time.
+
+### Writing runs
+
+```python
+core = Robot()
+trajectory1 = Trajectory(traj_test)
+
+def run_a():
     trajectory1.follow(core)
 
-def run2():
+def run_b():
     trajectory20.follow(core)
     wait(500)
     trajectory21.follow(core)
 
-def run3():
-    ...
-
-...
+selector = RunSelector(
+    core,
+    runs=[run_a, run_b],       # first is A, second is B, ...
+    before=start_run,          # optional, runs before every run
+    after=stop_run,            # optional, runs after every run
+    wrap=True,                 # cycle back to A after the last run
+    one_time_use=False,        # True: a letter disappears once it has run
+)
 ```
 
-2) Create a run list by instantiating separate `Run()` objects for each of your desired programs. The parameters for each `Run()` instance should be provided in the following order:
-    * The **button** that needs to be pressed to initiate the run;
-    * The **function** to be executed during the run;
-    * A boolean indicating whether the run should be executable **only once or multiple times**;
-    * An optional parameter is the **run number**. If no number is specified, the code will automatically assign a number based on the run's position in the list;
-    * Another optional parameter to specify if the run should be **combined** with pressing the middle button;
+`RunSelector` also takes `labels=['X', 'Y', 'Z']` if you would rather not use
+A, B, C.
+
+## Trajectories
+
+The hub has no filesystem, so a trajectory can no longer be read from a `.txt`
+at runtime. Convert it on your computer first:
+
+```bash
+python3 tools/txt_to_py.py Trajectory/TXT/mypath.txt
+```
+
+That writes `traj_mypath.py`, which you upload alongside everything else:
 
 ```python
-run_list = [Run(Button.UP, function = test, one_time_use =  False, with_center = False),
-            Run(Button.LEFT, function = dummy, one_time_use = False, run_number = 2),
-            Run(Button.DOWN, function = dummy, one_time_use = False),
-            Run(Button.DOWN, function = dummy, one_time_use = False)]
+import traj_mypath
+
+trajectory1 = Trajectory(traj_mypath)
 ```
 
-If two or more runs share the same button combination for access, they will be executed sequentially according to the run numbers assigned to them.
+Then follow it with `.follow(core)`.
 
-3) Add the list to the run controller. Failing to do so will result in an error;
+The generated module stores the path as one compact `bytes` constant rather
+than a list of numbers, because the hub's heap is small. The bundled
+`traj_test` is 1965 states over 11.8 seconds and costs about **11.8 kB**.
+
+### Markers
+
+If your path has markers, bind a function to each one in path order:
 
 ```python
-core.run_control.addRunList(run_list)
+trajectory1 = (Trajectory(traj_mypath)
+               .withMarkers((drop_arm, raise_arm)))
 ```
 
-4) You can also implement optional *`before_run`* and *`after_run`* methods, as demonstrated in the example below. These methods allow for additional actions to be executed before and after each run, providing greater flexibility and control over the robot's behavior.
+> **Markers run inline.** The EV3 fired each marker on its own thread; the hub
+> has no `threading` module, so a marker now runs *on the follow loop*. Keep
+> marker functions short and non-blocking -- anything slow will stall the path
+> being followed.
 
-```python
-core.run_control.addBeforeEveryRun(function = start_run)
-core.run_control.addAfterEveryRun(function = stop_run)
+## TeleOp
 
-```
+`teleop.py` drives the robot from a game controller so you can test
+attachments without writing a run. Run that file instead of `main.py`.
 
-### TeleOp.py
-To facilitate easier testing of the robot's mechanical components, such as the attachments or drivetrain, we have included code that allows you to **control the robot using a game controller**.
+Pybricks only speaks to **Xbox controllers** -- the EV3 version's PS3/PS4
+support read raw Linux input events and has no equivalent on the hub.
 
-This system is compatible with `PS3`, `PS4`, and `most Bluetooth controllers` that can connect to and be recognized by the EV3. It's designed to be plug-and-play, simply run the `TeleOp.py` file instead of `main.py`. For those interested in more advanced customization options, please refer to the **TeleOp.py** file itself.
+| Control | Action |
+|---|---|
+| **X** | select the LEFT task motor |
+| **B** | select the RIGHT task motor |
+| **left stick, Y** | drive forwards / backwards |
+| **right stick, X** | turn |
+| **D-pad up** | run the selected task motor forwards |
+| **D-pad down** | run the selected task motor backwards |
+| **D-pad left** | stop the selected task motor |
 
-The control scheme for operating the robot is as follows:
+<br/>
 
-<p align="center">
-    <img src="https://i.ibb.co/K7XPnXV/controller-scheme.png" alt="trajectory-3">
-</p>
+# What changed from the EV3 version
 
-1) Select the **LEFT** task motor (if you have one);
-2) Selecte the **RIGHT** task motor (if you have one);
-3) Move the robot **FORWARDS** / **BACKWARDS**;
-4) **TURN** the robot;
-5) **STOP** the selected task motor;
-6) set a **POSITIVE** dc power to the selected task motor;
-7) set a **NEGATIVE** dc power to the selected task motor;
+The EV3 runs Pybricks on top of ev3dev Linux. The hub runs bare-metal
+MicroPython. That difference drives nearly all of this:
 
-## Advanced Usage
+| | EV3 | SPIKE Prime |
+|---|---|---|
+| Trajectory data | `open()` a `.txt` at runtime | generated `.py` module, converted on the PC |
+| Config | `hardware.cfg` INI file | `config.py` |
+| Markers | one thread each | run inline on the follow loop |
+| Heading | external gyro sensor | the hub's built-in IMU |
+| Run selection | one run per direction button | letter + CENTER, auto-advancing |
+| Screen | 178x128 text | 5x5 LED matrix, one character |
+| Layout | packages in folders | flat files, no subdirectories |
+| TeleOp | PS3/PS4 via `/dev/input` | Xbox via `pybricks.iodevices` |
+| Ports | `A`-`D` motors, `S1`-`S4` sensors | `A`-`F` for everything |
 
-*Check out the full library [here][1]*
+Carried over unchanged: `math_ex.py`, `edge_detector.py`, `pid.py`, the
+run-length-encoded trajectory format, and the feed-forward + heading-PID
+follow loop that made the EV3 version fast.
 
+## Advanced usage
+
+*Check out the full library [here][1].*
 
 *v. 0.0.4-alpha*
 
-
-
-[0]: https://pybricks.com/ev3-micropython/startinstall.html "install pybricks"
+[0]: https://pybricks.com/learn/getting-started/install-pybricks/ "install pybricks"
 [1]: https://github.com/omegacoreFLL/PythFinder
-[2]: https://github.com/omegacoreFLL/MasterPiecE/blob/main/TankDrive/constants.py
+[2]: https://code.pybricks.com

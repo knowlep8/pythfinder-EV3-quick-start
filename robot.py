@@ -1,164 +1,144 @@
-# importing all the pybricks stuff
+"""
+Core robot object for a SPIKE Prime / Robot Inventor hub.
 
-from pybricks.hubs import EV3Brick
-from pybricks.ev3devices import (Motor, TouchSensor, ColorSensor,
-                                 InfraredSensor, UltrasonicSensor, GyroSensor)
-from pybricks.parameters import Port, Stop, Direction, Button, Color
-from pybricks.tools import wait, StopWatch, DataLog
-from pybricks.media.ev3dev import SoundFile, ImageFile
+Assumes the common FLL layout:
+    - 2 driving motors            (required)
+    - 2 task motors, for attachments   (optional)
+    - up to 3 color sensors            (optional)
+    - the hub's built-in IMU for heading -- no external gyro needed
 
-from Controllers.RunController import *
-from BetterClasses.TelemetryEx import *
-from BetterClasses.ButtonsEx import *
-from Settings.ConfigReader import *
-from BetterClasses.MathEx import * 
-from BetterClasses.LedEx import *
-from Settings.constants import *
+Ports and directions come from config.py.
+"""
 
-# core class, assuming the most common configuration of an ev3 FLL robot:
-#               - 2 driving motors
-#               - 2 free / task motors (for attachments)
-#               - 2 color sensors, symmetrical to an imaginary middle line, in front of the robot
-#               - 1 gyro sensor
+from pybricks.hubs import PrimeHub
+from pybricks.parameters import Stop
+from pybricks.pupdevices import ColorSensor, Motor
+from pybricks.tools import StopWatch
+
+import config
+from constants import MAX_VOLTAGE
+from led import Led
+from math_ex import clipMotor, normalizeDegrees
+
+
+def _optional_motor(port, direction):
+    """A task motor that may simply not be plugged in."""
+    if port is None:
+        return None
+    try:
+        return Motor(port, positive_direction=direction)
+    except OSError:
+        return None
+
+
+def _optional_sensor(port):
+    if port is None:
+        return None
+    try:
+        return ColorSensor(port)
+    except OSError:
+        return None
+
+
 class Robot:
     def __init__(self):
-        self.brick = EV3Brick()
-        self.config = ConfigReader()
+        # Describing the hub's mounting lets the IMU report a heading in robot
+        # coordinates, which is what the old up_side_down / front_side_back
+        # gyro flags were working around on the EV3.
+        self.hub = PrimeHub(top_side=config.HUB_TOP_SIDE,
+                            front_side=config.HUB_FRONT_SIDE)
 
-
-        # left and right task motors
+        # Drive motors are not optional -- without them there is no robot.
         try:
-            self.leftTask = Motor(self.config.left_task_port, 
-                                  positive_direction = self.config.left_task_direction)
-        except: self.leftTask = None
+            self.leftDrive = Motor(config.LEFT_WHEEL_PORT,
+                                   positive_direction=config.LEFT_WHEEL_DIRECTION)
+            self.rightDrive = Motor(config.RIGHT_WHEEL_PORT,
+                                    positive_direction=config.RIGHT_WHEEL_DIRECTION)
+        except OSError:
+            raise Exception("You need TWO (2) driving motors. Check config.py "
+                            "-- expected LEFT on {0} and RIGHT on {1}"
+                            .format(config.LEFT_WHEEL_PORT, config.RIGHT_WHEEL_PORT))
 
-        try:
-            self.rightTask = Motor(self.config.right_task_port,
-                                   positive_direction = self.config.right_task_direction)
-        except: self.rightTask = None
+        self.leftTask = _optional_motor(config.LEFT_TASK_PORT,
+                                        config.LEFT_TASK_DIRECTION)
+        self.rightTask = _optional_motor(config.RIGHT_TASK_PORT,
+                                         config.RIGHT_TASK_DIRECTION)
 
+        self.leftColor = _optional_sensor(config.COLOR_SENSOR_LEFT_PORT)
+        self.rightColor = _optional_sensor(config.COLOR_SENSOR_RIGHT_PORT)
+        self.attachmentColor = _optional_sensor(config.ATTACHMENT_COLOR_SENSOR_PORT)
 
-        # left and right drive motors
-        try:
-            self.leftDrive = Motor(self.config.left_wheel_port,
-                                positive_direction = self.config.left_wheel_direction)
-            self.rightDrive = Motor(self.config.right_wheel_port,
-                                    positive_direction = self.config.right_wheel_direction)
-        except: raise Exception("You need to have TWO (2) driving motors. Please check your configuration")
+        self.led_control = Led(self.hub)
 
-
-        # left and right color sensors
-        try: self.leftColor = ColorSensor(self.config.color_sensor_left_port)
-        except: self.leftColor = None
-
-        try: self.rightColor = ColorSensor(self.config.color_sensor_right_port)
-        except: self.rightColor = None
-
-        try: self.attachmentColor = ColorSensor(self.config.attachment_color_sensor_port)
-        except: self.attachmentColor = None
-
-        try:
-            self.gyro = GyroSensor(self.config.gyro_port)
-        except: raise Exception("You need to have a GYRO sensor. Please check your configuration")
-
-
-
-        self.led_control = LedEx(self.brick)
-        self.led_control.addTakeYourHandsOffColor(None)
-
-        self.gamepad = ButtonEx(self.brick)
-        self.telemetry = TelemetryEx(self.brick)
-        self.run_control = RunController(self.gamepad, self.brick, self.telemetry, self.led_control)
+        self.PID_multiplier = config.PID_MULTIPLIER
 
         self.frequency_timer = StopWatch()
         self.start_loop_time = 0
 
-        self.voltage = 0
+        self.voltage = self.hub.battery.voltage() / 1000
 
-        if up_side_down_gyro:
-            self.__gyro_direction = -1
-        else: self.__gyro_direction = 1
-
-        if front_side_back_gyro:
-            self.config.PID_multiplier *= -1
-        else: self.config.PID_multiplier *= 1
-
-        if not self.attachmentColor == None:
-            self.run_control.addColorSensor(self.attachmentColor)
-    
-
-
+    # --- power ------------------------------------------------------------
     def normalizeVoltage(self, power):
+        """Scale power so a run behaves the same on a full or half-empty pack."""
         if self.voltage != 0:
             return power * MAX_VOLTAGE / self.voltage
         return power
 
-
-
     def setWheelPowers(self, left, right):
         self.leftDrive.dc(clipMotor(self.normalizeVoltage(left)))
         self.rightDrive.dc(clipMotor(self.normalizeVoltage(right)))
-    
+
     def setDriveTo(self, stop_type):
-        if stop_type is Stop.COAST:        
+        if stop_type is Stop.COAST:
             self.leftDrive.stop()
             self.rightDrive.stop()
-        
+
         elif stop_type is Stop.BRAKE:
             self.leftDrive.brake()
             self.rightDrive.brake()
-        
+
         elif stop_type is Stop.HOLD:
             self.leftDrive.hold()
             self.rightDrive.hold()
 
+    def stopTaskMotors(self):
+        if self.leftTask is not None:
+            self.leftTask.stop()
+        if self.rightTask is not None:
+            self.rightTask.stop()
 
+    # --- zeroing ----------------------------------------------------------
+    def zeroTaskMotors(self, resetLeft=True, resetRight=True):
+        if resetLeft and self.leftTask is not None:
+            self.leftTask.reset_angle(0)
+        if resetRight and self.rightTask is not None:
+            self.rightTask.reset_angle(0)
 
-    def zeroTaskMotors(self, resetLeft = True, resetRight = True):
-        try: 
-            if resetLeft:
-                self.leftTask.reset_angle(0)
-        except: pass
-        
-        try: 
-            if resetRight:
-                self.rightTask.reset_angle(0)
-        except: pass
-    
     def zeroGyro(self):
-        self.gyro.reset_angle(0)
+        self.hub.imu.reset_heading(0)
 
     def zero(self):
         self.zeroGyro()
         self.zeroTaskMotors()
 
+    # --- state ------------------------------------------------------------
+    def getHeading(self):
+        # imu.heading() accumulates past 360 just like the EV3 gyro did, so it
+        # still needs wrapping before findShortestPath() can use it.
+        return normalizeDegrees(self.hub.imu.heading())
 
-    
-    def updateRuns(self):
-        self.run_control.update()
-
-    def update(self, loop_time: bool = False):
-        if self.run_control.entered_center:
-            self.led_control.entered_center()
-        else: self.led_control.not_started()
-
-        self.voltage = self.brick.battery.voltage() / 1000
-        self.run_control.update()
+    def update(self, loop_time=False):
+        self.voltage = self.hub.battery.voltage() / 1000
 
         if loop_time:
             end_loop_time = self.frequency_timer.time()
-            print("Frequency: {:.2f} loops / second".format(1000 / (end_loop_time - self.start_loop_time)))
+            elapsed = end_loop_time - self.start_loop_time
+            if elapsed > 0:
+                print("Frequency: {:.2f} loops / second".format(1000 / elapsed))
             self.start_loop_time = end_loop_time
-    
-
-
-    def getHeading(self):
-        return normalizeDegrees(self.gyro.angle() * self.__gyro_direction)
-        
-
 
     def showcaseAngle(self):
-        self.telemetry.addData('angle (deg): ', self.getHeading())
+        print("angle (deg): {0}".format(self.getHeading()))
 
     def showcaseVoltage(self):
-        self.telemetry.addData('V: ', self.voltage)
+        print("V: {0}".format(self.voltage))

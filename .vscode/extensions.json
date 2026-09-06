@@ -1,13 +1,13 @@
 {
 	// See http://go.microsoft.com/fwlink/?LinkId=827846 to learn about workspace recommendations.
-	// Extension identifier format: ${publisher}.${name}. Example: vscode.csharp
+	// Extension identifier format: ${publisher}.${name}.
 
-	// List of extensions which should be recommended for users of this workspace.
+	// Pybricks has no VS Code extension: you edit these files here and upload
+	// them at https://code.pybricks.com. Plain Python tooling is what helps.
 	"recommendations": [
-		"lego-education.ev3-micropython"
-	],
-	// List of extensions recommended by VS Code that should not be recommended for users of this workspace.
-	"unwantedRecommendations": [
 		"ms-python.python"
+	],
+	"unwantedRecommendations": [
+		"lego-education.ev3-micropython"
 	]
 }
