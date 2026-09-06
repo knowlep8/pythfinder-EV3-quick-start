@@ -161,7 +161,7 @@ class Trajectory():
         while time < self.TRAJ_TIME:
             time = timer.time()
 
-            index = time // steps
+            index = int(time // steps)
             if index >= count:
                 break
 

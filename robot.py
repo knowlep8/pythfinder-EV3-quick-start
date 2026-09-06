@@ -16,7 +16,7 @@ from pybricks.pupdevices import ColorSensor, Motor
 from pybricks.tools import StopWatch
 
 import config
-from constants import MAX_VOLTAGE
+from constants import MAX_VOLTAGE, STOP_BUTTON
 from led import Led
 from math_ex import clipMotor, normalizeDegrees
 
@@ -47,6 +47,11 @@ class Robot:
         # gyro flags were working around on the EV3.
         self.hub = PrimeHub(top_side=config.HUB_TOP_SIDE,
                             front_side=config.HUB_FRONT_SIDE)
+
+        # CENTER stops a Pybricks program by default, which would kill the
+        # program the moment RunSelector tried to use it to start a run.
+        # Move the stop button out of the way -- see STOP_BUTTON in constants.
+        self.hub.system.set_stop_button(STOP_BUTTON)
 
         # Drive motors are not optional -- without them there is no robot.
         try:

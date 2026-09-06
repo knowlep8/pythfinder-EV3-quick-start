@@ -108,6 +108,17 @@ scheme is gone. Instead the display shows a **letter**:
 | **CENTER** | run the letter currently shown |
 | **RIGHT** | jog to the next letter, without running it |
 | **LEFT** | jog back a letter, without running it |
+| **BLUETOOTH** | **stop the program** |
+
+> **The stop button has moved.** Pybricks normally stops a running program
+> when you press CENTER -- which would kill this one the instant you tried to
+> start a run. `Robot` therefore reassigns the stop button to **BLUETOOTH** at
+> startup. That is now your abort button, and it matters: while a trajectory
+> is following, the robot is driving.
+>
+> Change it with `STOP_BUTTON` in `constants.py`. Setting it to `None` frees
+> that button too, but then the only way out is holding CENTER for three
+> seconds, which powers the hub off.
 
 When a run finishes, the selector **advances to the next letter by itself**.
 So in a match where nothing goes wrong, the technician only ever taps CENTER.
@@ -213,6 +224,7 @@ MicroPython. That difference drives nearly all of this:
 | Markers | one thread each | run inline on the follow loop |
 | Heading | external gyro sensor | the hub's built-in IMU |
 | Run selection | one run per direction button | letter + CENTER, auto-advancing |
+| Stop button | dedicated back button | CENTER by default, moved to BLUETOOTH |
 | Screen | 178x128 text | 5x5 LED matrix, one character |
 | Layout | packages in folders | flat files, no subdirectories |
 | TeleOp | PS3/PS4 via `/dev/input` | Xbox via `pybricks.iodevices` |

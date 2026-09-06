@@ -8,6 +8,20 @@ Default units:
     time            seconds
 """
 
+from pybricks.parameters import Button
+
+
+# --- stop button ------------------------------------------------------------
+# The hub normally uses CENTER to stop a running program. This template needs
+# CENTER to start runs, so the stop button has to move somewhere else.
+#
+# BLUETOOTH keeps a real abort button, which matters: while a trajectory is
+# following, the robot is driving and you want a way to kill it.
+#
+# Set this to None to free that button too -- but then the only way to stop a
+# run is holding CENTER for three seconds, which powers the hub off.
+STOP_BUTTON = Button.BLUETOOTH
+
 
 # --- heading correction -----------------------------------------------------
 # PID gains for holding the heading the trajectory asks for. This is the only

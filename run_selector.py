@@ -133,7 +133,7 @@ class RunSelector():
 
         if takeHandsOff:
             self.led.take_your_hands_off()
-            wait(sToMs(time_to_take_hands_off))
+            wait(int(sToMs(time_to_take_hands_off)))
 
         self.led.in_progress()
         self._render()                       # keep the letter up while running

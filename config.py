@@ -28,7 +28,7 @@ HUB_FRONT_SIDE = Axis.X
 # --- motors -----------------------------------------------------------------
 # The Prime hub has six identical ports, A through F. Unlike the EV3 there is
 # no separate set of sensor ports -- sensors go in the same A-F ports.
-LEFT_WHEEL_PORT = Port.A
+LEFT_WHEEL_PORT = Port.F
 RIGHT_WHEEL_PORT = Port.B
 
 LEFT_TASK_PORT = Port.C
@@ -37,7 +37,7 @@ RIGHT_TASK_PORT = Port.D
 
 # --- sensors ----------------------------------------------------------------
 COLOR_SENSOR_LEFT_PORT = Port.E
-COLOR_SENSOR_RIGHT_PORT = Port.F
+COLOR_SENSOR_RIGHT_PORT = Port.A
 
 # A third color sensor used to auto-identify the mounted attachment.
 ATTACHMENT_COLOR_SENSOR_PORT = None
