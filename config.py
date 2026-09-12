@@ -46,7 +46,12 @@ ATTACHMENT_COLOR_SENSOR_PORT = None
 # --- directions -------------------------------------------------------------
 # Which way a positive power turns each motor. Flip one of these if a wheel
 # spins backwards.
-LEFT_WHEEL_DIRECTION = Direction.CLOCKWISE
+#
+# The two sides normally need OPPOSITE values. "Clockwise" is measured at each
+# motor's own output shaft, and on a mirrored drivetrain those shafts point
+# opposite ways -- so giving both sides the same Direction drives one wheel
+# forward and the other backward, and the robot spins on the spot.
+LEFT_WHEEL_DIRECTION = Direction.COUNTERCLOCKWISE
 RIGHT_WHEEL_DIRECTION = Direction.CLOCKWISE
 
 LEFT_TASK_DIRECTION = Direction.COUNTERCLOCKWISE
@@ -54,16 +59,14 @@ RIGHT_TASK_DIRECTION = Direction.COUNTERCLOCKWISE
 
 
 # --- derived ----------------------------------------------------------------
-# Same rule the EV3 ConfigReader enforced: both wheel motors are mounted
-# mirrored, so they take the same Direction. If they disagree, something is
-# wrong with the config rather than with the robot.
-if LEFT_WHEEL_DIRECTION is not RIGHT_WHEEL_DIRECTION:
-    print("\n\nWheel motor directions should match, but LEFT is {0} and RIGHT is {1}"
-          .format(LEFT_WHEEL_DIRECTION, RIGHT_WHEEL_DIRECTION))
-    print("Using {0} for both. If you meant this, edit config.py."
-          .format(LEFT_WHEEL_DIRECTION))
-    RIGHT_WHEEL_DIRECTION = LEFT_WHEEL_DIRECTION
-
-# Sign of the heading correction, so a mirrored drivetrain still steers the
-# right way. Consumed by Trajectory.follow().
-PID_MULTIPLIER = 1 if LEFT_WHEEL_DIRECTION is Direction.CLOCKWISE else -1
+# Sign of the heading correction, consumed by Trajectory.follow().
+#
+# This used to be derived from LEFT_WHEEL_DIRECTION, which only made sense
+# while both sides were forced to share a Direction. Now that they differ --
+# as they must on a mirrored drivetrain -- neither side's Direction says
+# anything about which way the robot steers, so it is set explicitly.
+#
+# 1 is right whenever positive power drives both wheels forward. If a
+# trajectory veers off its line harder and harder instead of settling onto it,
+# the correction is fighting the robot: set this to -1.
+PID_MULTIPLIER = 1
