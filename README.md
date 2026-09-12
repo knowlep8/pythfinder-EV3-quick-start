@@ -192,6 +192,47 @@ trajectory1 = (Trajectory(traj_mypath)
 > marker functions short and non-blocking -- anything slow will stall the path
 > being followed.
 
+### Runs that carry their own code
+
+A run written by the web planner arrives as a single file holding the data, the
+attachment motor code, and a `run()` that ties them together:
+
+```python
+from trajectory import Trajectory
+
+STEPS = 6
+MARKERS = (1764, 7942)
+COUNT = 2607
+DATA = (b'...')
+
+def _arm_down(core):
+    core.leftTask.run(500)
+
+def run(core):
+    trajectory = Trajectory.fromValues(STEPS, MARKERS, COUNT, DATA)
+    trajectory.withMarkers((lambda: _arm_down(core), ...))
+    trajectory.follow(core)
+```
+
+so `runs.py` needs only:
+
+```python
+import run_a
+
+selector = RunSelector(core, runs=[run_a.run, ...])
+```
+
+`example_run.py` is one of these, hand-written and short enough to read.
+
+`Trajectory.fromValues()` exists because a module cannot hand *itself* to
+`Trajectory(module)` on MicroPython -- there is no dependable way for it to
+refer to itself -- so it passes the four values instead. Everything after that
+is the same code as `read()`, so the two ways of building a trajectory cannot
+drift apart.
+
+The older two-file way still works and is not going anywhere: the planner is
+what generates the newer one.
+
 ## TeleOp
 
 `teleop.py` drives the robot from a game controller so you can test
