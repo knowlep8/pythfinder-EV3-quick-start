@@ -16,11 +16,13 @@ from trajectory import Trajectory
 
 # Trajectories are generated on the PC -- see tools/txt_to_py.py.
 import traj_test
+import traj_run_a
 
 
 core = Robot()
 
 trajectory1 = Trajectory(traj_test)
+trajectory2 = Trajectory(traj_run_a)
 
 
 # --- optional hooks, run around every single run ----------------------------
@@ -35,7 +37,7 @@ def stop_run():
 
 # --- one function per run ---------------------------------------------------
 def run_a():
-    trajectory1.follow(core)
+    trajectory2.follow(core)
 
 
 def run_b():
