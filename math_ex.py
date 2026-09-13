@@ -1,4 +1,10 @@
-import math
+# Pybricks calls it umath, and does not provide `math` under that name: the
+# hub fails with "no module named 'math'" on this line otherwise. Same story
+# as ustruct in trajectory.py.
+try:
+    import umath as math
+except ImportError:
+    import math
 
 class Point:
     def __init__(self, x = 0, y = 0):

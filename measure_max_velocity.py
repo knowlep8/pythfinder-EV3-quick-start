@@ -22,7 +22,11 @@ instead of main.py. Press CENTER to start each attempt; the result prints to
 the console when all of them are done.
 """
 
-import math
+# Pybricks calls it umath, and has no `math` under that name -- see math_ex.py
+try:
+    import umath as math
+except ImportError:
+    import math
 
 from pybricks.parameters import Button, Stop
 from pybricks.tools import StopWatch, wait
