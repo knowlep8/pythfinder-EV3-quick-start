@@ -19,8 +19,6 @@ Two differences from the EV3 version, both forced by the hub:
      non-blocking -- anything slow will stall the path being followed.
 """
 
-from struct import unpack_from
-
 from pybricks.parameters import Stop
 from pybricks.tools import StopWatch
 
@@ -32,6 +30,42 @@ from pid import PIDController
 # Each state is 3 little-endian int16: left*100, right*100, heading*10.
 _STATE_FORMAT = '<hhh'
 _STATE_SIZE = 6
+
+
+# Pybricks does not ship `struct`: importing it fails on the hub with
+# "no module named 'struct'", which is what killed this file on the robot.
+# Older MicroPython calls the same module `ustruct`, so try that first, and
+# fall back to reading the bytes by hand where neither exists.
+#
+# The choice is made once, here, rather than with a branch inside the follow
+# loop -- that loop runs thousands of times per run and is what keeps the
+# robot on its line.
+try:
+    from ustruct import unpack_from
+except ImportError:
+    try:
+        from struct import unpack_from
+    except ImportError:
+        unpack_from = None
+
+
+if unpack_from is None:
+    def _state_at(data, at):
+        """Three little-endian int16, decoded without a library.
+
+        bytes are indexable on MicroPython, so this needs nothing but
+        arithmetic: low byte, high byte, and the sign put back by hand.
+        """
+        left = data[at] | (data[at + 1] << 8)
+        right = data[at + 2] | (data[at + 3] << 8)
+        head = data[at + 4] | (data[at + 5] << 8)
+
+        return (left - 65536 if left > 32767 else left,
+                right - 65536 if right > 32767 else right,
+                head - 65536 if head > 32767 else head)
+else:
+    def _state_at(data, at):
+        return unpack_from(_STATE_FORMAT, data, at)
 
 
 class Marker():
@@ -204,8 +238,7 @@ class Trajectory():
             if index >= count:
                 break
 
-            LEFT, RIGHT, HEAD = unpack_from(_STATE_FORMAT, data,
-                                            index * _STATE_SIZE)
+            LEFT, RIGHT, HEAD = _state_at(data, index * _STATE_SIZE)
             LEFT = LEFT / 100
             RIGHT = RIGHT / 100
             target_angle = HEAD / 10
