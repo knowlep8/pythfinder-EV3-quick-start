@@ -231,8 +231,17 @@ class Trajectory():
         timer = StopWatch()
         time = 0
 
+        # Time spent inside a marker, which does not count against the path.
+        #
+        # A sequential arm step runs its motor to completion, and the hub has
+        # no threading, so that waiting happens here, on this loop. Left
+        # uncounted, the clock would jump forward while the arm moved and the
+        # robot would silently skip that stretch of path -- driving nothing,
+        # and ending up somewhere it was never planned to be.
+        paused = 0
+
         while time < self.TRAJ_TIME:
-            time = timer.time()
+            time = timer.time() - paused
 
             index = int(time // steps)
             if index >= count:
@@ -244,7 +253,10 @@ class Trajectory():
             target_angle = HEAD / 10
 
             if marker is not None and time >= marker.value:
+                began = timer.time()
                 marker.do()
+                paused += timer.time() - began
+
                 self.marker_iterator += 1
                 marker = (None if self.marker_iterator >= self.marker_number
                           else self.markers[self.marker_iterator])
