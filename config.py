@@ -28,16 +28,16 @@ HUB_FRONT_SIDE = Axis.X
 # --- motors -----------------------------------------------------------------
 # The Prime hub has six identical ports, A through F. Unlike the EV3 there is
 # no separate set of sensor ports -- sensors go in the same A-F ports.
-LEFT_WHEEL_PORT = Port.E
-RIGHT_WHEEL_PORT = Port.A
+LEFT_WHEEL_PORT = Port.C
+RIGHT_WHEEL_PORT = Port.D
 
-LEFT_TASK_PORT = Port.B
-RIGHT_TASK_PORT = Port.F
+LEFT_TASK_PORT = Port.A
+RIGHT_TASK_PORT = Port.E
 
 
 # --- sensors ----------------------------------------------------------------
-COLOR_SENSOR_LEFT_PORT = Port.C
-COLOR_SENSOR_RIGHT_PORT = Port.D
+COLOR_SENSOR_LEFT_PORT = Port.B
+COLOR_SENSOR_RIGHT_PORT = Port.F
 
 # A third color sensor used to auto-identify the mounted attachment.
 ATTACHMENT_COLOR_SENSOR_PORT = None
@@ -56,6 +56,20 @@ RIGHT_WHEEL_DIRECTION = Direction.CLOCKWISE
 
 LEFT_TASK_DIRECTION = Direction.COUNTERCLOCKWISE
 RIGHT_TASK_DIRECTION = Direction.COUNTERCLOCKWISE
+
+
+# --- driving with DriveBase ---------------------------------------------------
+# What core.drive_base starts as. A file from the web planner passes its own
+# robot profile's numbers to core.configure() and these are only the fallback
+# for a run without one -- but they are what drivebase_test.py measures, so
+# keep them up to date.
+#
+# These are the OLD base's, measured before the rebuild (PythFinder's
+# docs/web-planner.md, step 5.1): re-measure with drivebase_test.py's B and C.
+# A turn depends on axle track / wheel diameter, so when the wheel number
+# changes, scale the axle track with it.
+WHEEL_DIAMETER_MM = 54.6
+AXLE_TRACK_MM = 165.8
 
 
 # --- derived ----------------------------------------------------------------

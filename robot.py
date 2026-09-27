@@ -13,6 +13,7 @@ Ports and directions come from config.py.
 from pybricks.hubs import PrimeHub
 from pybricks.parameters import Stop
 from pybricks.pupdevices import ColorSensor, Motor
+from pybricks.robotics import DriveBase
 from pybricks.tools import StopWatch
 
 import config
@@ -75,6 +76,16 @@ class Robot:
 
         self.led_control = Led(self.hub)
 
+        # Runs from the web planner drive with this rather than the follow
+        # loop in trajectory.py. Both can live in one program: a follow-loop
+        # run's dc() calls simply take the motors back (seen on the hub in
+        # drivebase_test.py, where test G ran after a DriveBase existed).
+        self.drive_base = DriveBase(self.leftDrive, self.rightDrive,
+                                    config.WHEEL_DIAMETER_MM, config.AXLE_TRACK_MM)
+        self.drive_base.use_gyro(True)
+        self._geometry = (config.WHEEL_DIAMETER_MM, config.AXLE_TRACK_MM)
+        self._default_settings = self.drive_base.settings()
+
         self.PID_multiplier = config.PID_MULTIPLIER
 
         self.frequency_timer = StopWatch()
@@ -111,6 +122,62 @@ class Robot:
             self.leftTask.stop()
         if self.rightTask is not None:
             self.rightTask.stop()
+
+    # --- driving, for files from the web planner ---------------------------
+    def configure(self, wheel_diameter=None, axle_track=None,
+                  straight_speed=None, straight_acceleration=None,
+                  turn_rate=None, turn_acceleration=None, use_gyro=True):
+        """Set up the DriveBase for one run, and hand it back.
+
+        A planner file passes its robot profile's numbers, so the profile in
+        the planner -- not this file -- is where a robot's tuning lives. With
+        none, config.py's numbers and the firmware's own speeds are used.
+
+        A new DriveBase is only made when the wheel or axle track changes;
+        speeds are just settings. Anything left out goes back to its default,
+        so one run's slow profile never leaks into the next run.
+        """
+        geometry = (wheel_diameter or config.WHEEL_DIAMETER_MM,
+                    axle_track or config.AXLE_TRACK_MM)
+
+        if geometry != self._geometry:
+            self.drive_base.stop()
+            self.drive_base = DriveBase(self.leftDrive, self.rightDrive, *geometry)
+            self._geometry = geometry
+            self._default_settings = self.drive_base.settings()
+
+        speeds = (straight_speed, straight_acceleration,
+                  turn_rate, turn_acceleration)
+
+        self.drive_base.settings(*[default if asked is None else asked
+                                   for asked, default in
+                                   zip(speeds, self._default_settings)])
+        self.drive_base.use_gyro(use_gyro)
+
+        return self.drive_base
+
+    def set_heading(self, degrees):
+        """Tell the gyro which way the robot faces, in the planner's field
+        headings (0 up the field, 90 to the right). turn_to() works in those
+        same headings, so this has to be right before the first turn."""
+        self.hub.imu.reset_heading(degrees)
+
+    def turn_to(self, degrees, by):
+        """Turn to face `degrees`, the way the planner planned it.
+
+        Works from where the gyro says the robot really is, so a heading that
+        drifted on the last drive is corrected here instead of carried into
+        the next one. Every rotation that ends facing `degrees` is the
+        shortest one plus some whole turns; this takes the one closest to
+        `by`, the rotation the plan made. That is the shortest way when the
+        plan turned the shortest way, and the long way round when a turn was
+        planned backwards -- which sweeps a different part of the mat, so it
+        matters which.
+        """
+        shortest = (degrees - self.hub.imu.heading() + 180) % 360 - 180
+        whole_turns = round((by - shortest) / 360)
+
+        self.drive_base.turn(shortest + 360 * whole_turns)
 
     # --- zeroing ----------------------------------------------------------
     def zeroTaskMotors(self, resetLeft=True, resetRight=True):
