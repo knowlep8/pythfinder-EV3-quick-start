@@ -129,22 +129,29 @@ class Robot:
                   turn_rate=None, turn_acceleration=None, use_gyro=True):
         """Set up the DriveBase for one run, and hand it back.
 
-        A planner file passes its robot profile's numbers, so the profile in
-        the planner -- not this file -- is where a robot's tuning lives. With
-        none, config.py's numbers and the firmware's own speeds are used.
+        A planner file passes its robot profile's numbers. The speeds are
+        applied; anything left out goes back to its default, so one run's slow
+        profile never leaks into the next run.
 
-        A new DriveBase is only made when the wheel or axle track changes;
-        speeds are just settings. Anything left out goes back to its default,
-        so one run's slow profile never leaks into the next run.
+        The wheel and axle track are NOT changed: they stay config.py's.
+        Pybricks allows one DriveBase per motor for the whole program -- a
+        second one is refused with "Device or resource busy" (drivebase_test.py,
+        test J) -- and they do not need changing anyway. A run's distances are
+        real millimetres on the field, so what makes the robot drive them
+        right is THIS robot's measured wheel and track, not the copy a run
+        carries. If they disagree, the run's copy is stale, and it says so.
         """
-        geometry = (wheel_diameter or config.WHEEL_DIAMETER_MM,
-                    axle_track or config.AXLE_TRACK_MM)
+        asked = (wheel_diameter or self._geometry[0],
+                 axle_track or self._geometry[1])
 
-        if geometry != self._geometry:
-            self.drive_base.stop()
-            self.drive_base = DriveBase(self.leftDrive, self.rightDrive, *geometry)
-            self._geometry = geometry
-            self._default_settings = self.drive_base.settings()
+        # a tenth of a mm either way is rounding in the run file, not a
+        # different robot
+        if (abs(asked[0] - self._geometry[0]) > 0.1 or
+                abs(asked[1] - self._geometry[1]) > 0.1):
+            print("this run was planned with wheel {0} / axle track {1}, but "
+                  "this robot is {2} / {3} (config.py) -- driving with this "
+                  "robot's. Update the robot profile in the planner."
+                  .format(asked[0], asked[1], *self._geometry))
 
         speeds = (straight_speed, straight_acceleration,
                   turn_rate, turn_acceleration)
