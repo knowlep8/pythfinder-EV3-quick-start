@@ -10,8 +10,7 @@ answers the questions phase 5 depends on before anything is built:
     D  the join       is straight(then=NONE) + straight() seamless?
     E  settings       does settings() work while the robot is still rolling?
     F  after a nudge  is turn() relative to the real heading, or the old target?
-    G  old square     run_square with today's follow loop
-    H  new square     the same square with DriveBase, turning BY 90 each time
+    H  new square     run_square's square with DriveBase, turning BY 90 each time
     I  new square     the same, turning TO each heading off the gyro
     J  other wheel    a run planned with a different wheel still drives
 
@@ -19,7 +18,11 @@ The letters work like main.py: the display shows one, CENTER runs it, LEFT and
 RIGHT move between them. Everything worth writing down is printed in the
 Pybricks Code terminal on lines starting "5.1", so keep the hub connected.
 
-For G, H and I, mark where the robot starts, and after each run measure how
+There is no G any more: it drove the square with the old follow loop, which
+has been removed. The letters after it keep their names so the results
+recorded in docs/web-planner.md still match.
+
+For H and I, mark where the robot starts, and after each run measure how
 far the front of the robot ended up from where it should be. Do each one five
 times, once on a full battery and once on a tired one (the voltage is printed).
 """
@@ -31,7 +34,6 @@ from pybricks.tools import StopWatch, wait
 import config
 from robot import Robot
 from run_selector import RunSelector
-import run_square
 
 
 # --- the numbers under test ---------------------------------------------------
@@ -46,12 +48,12 @@ import run_square
 WHEEL_DIAMETER_MM = config.WHEEL_DIAMETER_MM
 AXLE_TRACK_MM = config.AXLE_TRACK_MM
 
-# run_square's plan, decoded from run_square.py's DATA: drive this many mm,
+# run_square's plan: drive this many mm,
 # then turn to face this heading. 0 is up the field, 90 is to the right.
 SQUARE = ((400, 90), (300, 180), (300, 270), (300, 0))
 
-# The plan's own cruise: 43.08% power x 64.3 cm/s top speed. Same speed both
-# ways, so G against H/I compares the method, not the pace.
+# The old recorded run's cruise: 43.08% power x 64.3 cm/s top speed, kept so
+# H and I drive at the pace the follow loop did when they were compared.
 SQUARE_SPEED = 277
 
 
@@ -264,14 +266,7 @@ def test_nudge():
         report("F", "turn() starts from the real heading -- 5.6 needs turn_to")
 
 
-# --- G, H, I: the square three ways ------------------------------------------------
-def test_old_square():
-    core.zero()
-    started = timer.time()
-    run_square.run(core)
-    finish("G", started)
-
-
+# --- H, I: the square two ways ----------------------------------------------------
 def test_square_by():
     fresh()
     drive_base.settings(straight_speed=SQUARE_SPEED)
@@ -350,8 +345,8 @@ report("-", "ready, battery {0:.2f} V".format(voltage()))
 RunSelector(
     core,
     runs=[test_firmware, test_wheel, test_axle, test_join, test_settings,
-          test_nudge, test_old_square, test_square_by, test_square_to,
-          test_second_drive_base],
+          test_nudge, test_square_by, test_square_to, test_second_drive_base],
+    labels=list("ABCDEFHIJ"),     # no G -- see the top of this file
     after=after_test,
     wrap=True,
 ).run_forever()
