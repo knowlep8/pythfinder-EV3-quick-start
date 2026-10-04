@@ -13,6 +13,7 @@ answers the questions phase 5 depends on before anything is built:
     G  old square     run_square with today's follow loop
     H  new square     the same square with DriveBase, turning BY 90 each time
     I  new square     the same, turning TO each heading off the gyro
+    J  two bases      can a second DriveBase take motors the first one used?
 
 The letters work like main.py: the display shows one, CENTER runs it, LEFT and
 RIGHT move between them. Everything worth writing down is printed in the
@@ -298,6 +299,58 @@ def test_square_to():
     finish("I", started)
 
 
+# --- J: a second DriveBase on the same motors ------------------------------------
+def _try(test, what, action):
+    """Run one step of J, and say whether Pybricks allowed it."""
+    try:
+        result = action()
+        report(test, what + " OK")
+        return True, result
+    except Exception as error:
+        report(test, what + " REFUSED -- " + repr(error))
+        return False, None
+
+
+def test_second_drive_base():
+    """What core.configure() does whenever a run's profile has a different
+    wheel or axle track from config.py: make a new DriveBase on the motors
+    robot.py's own is already using. Then back again, which is a third.
+
+    Needs about 20 cm clear in front: it drives 100 mm forward and back.
+    """
+    global drive_base
+
+    fresh()
+    first = core.drive_base
+
+    made, second = _try("J", "making a second DriveBase (wheel +2 mm)",
+                        lambda: core.configure(wheel_diameter=WHEEL_DIAMETER_MM + 2,
+                                               axle_track=AXLE_TRACK_MM))
+    if not made:
+        report("J", "configure() cannot change geometry -- restart the program")
+        return
+
+    report("J", "it is a new object: {0}".format(second is not first))
+
+    _try("J", "the second one driving 100 mm", lambda: second.straight(100))
+    _try("J", "the second one turning 90", lambda: second.turn(90))
+    _try("J", "the second one turning back", lambda: second.turn(-90))
+
+    # what happens to the one it replaced -- nothing should still be using
+    # it, but it is worth knowing whether it fails loudly or quietly
+    _try("J", "the FIRST one, after being replaced, driving 0 mm",
+         lambda: first.straight(0))
+
+    made, third = _try("J", "going back to config.py's numbers (a third)",
+                       lambda: core.configure())
+    if made:
+        _try("J", "the third one driving back 100 mm", lambda: third.straight(-100))
+        drive_base = third      # so the other letters keep working after J
+
+    report("J", "a second DriveBase is safe if every line above but the "
+           "FIRST-one line says OK")
+
+
 def after_test():
     drive_base.stop()
     core.setDriveTo(Stop.BRAKE)
@@ -308,7 +361,8 @@ report("-", "ready, battery {0:.2f} V".format(voltage()))
 RunSelector(
     core,
     runs=[test_firmware, test_wheel, test_axle, test_join, test_settings,
-          test_nudge, test_old_square, test_square_by, test_square_to],
+          test_nudge, test_old_square, test_square_by, test_square_to,
+          test_second_drive_base],
     after=after_test,
     wrap=True,
 ).run_forever()
