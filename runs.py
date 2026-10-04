@@ -12,18 +12,16 @@ from pybricks.tools import wait
 from constants import zeroBeforeEveryRun
 from robot import Robot
 from run_selector import RunSelector
-from trajectory import Trajectory
 
-# Trajectories are generated on the PC -- see tools/txt_to_py.py.
-# import traj_test
-import run_a
+# Runs downloaded from the web planner. Each file has its own run(core).
+# Imported under a different name from the function below that drives it --
+# `import run_a` and `def run_a()` would be the same name, and the function
+# would replace the module.
+import run_a as planned_a
 import run_square
 
 
 core = Robot()
-
-# trajectory1 = Trajectory(traj_test)
-trajectory2 = Trajectory(run_a)
 
 
 # --- optional hooks, run around every single run ----------------------------
@@ -38,7 +36,7 @@ def stop_run():
 
 # --- one function per run ---------------------------------------------------
 def run_a():
-    trajectory2.follow(core)
+    planned_a.run(core)
 
 
 def run_b():
