@@ -15,13 +15,14 @@ from run_selector import RunSelector
 from trajectory import Trajectory
 
 # Trajectories are generated on the PC -- see tools/txt_to_py.py.
-import traj_test
+# import traj_test
 import run_a
+import run_square
 
 
 core = Robot()
 
-trajectory1 = Trajectory(traj_test)
+# trajectory1 = Trajectory(traj_test)
 trajectory2 = Trajectory(run_a)
 
 
@@ -48,13 +49,17 @@ def run_c():
     wait(1000)
 
 
+def run_d():
+    run_square.run(core)
+
+
 # --- wire it up -------------------------------------------------------------
 # wrap=True cycles back to A after the last run.
 # Set one_time_use=True to have each letter disappear once it has been run,
 # which is usually what you want during a real match.
 selector = RunSelector(
     core,
-    runs=[run_a, run_b, run_c],
+    runs=[run_a, run_b, run_c, run_d],
     before=start_run,
     after=stop_run,
     wrap=True,

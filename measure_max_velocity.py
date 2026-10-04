@@ -36,7 +36,9 @@ from robot import Robot
 
 # --- your build -------------------------------------------------------------
 
-WHEEL_DIAMETER_CM = 7.0
+# Measured on the rebuilt base with drivebase_test.py -- config.py's
+# WHEEL_DIAMETER_MM, in cm.
+WHEEL_DIAMETER_CM = 5.56
 
 # Wheel turns per motor turn. 1 means the wheel is on the motor shaft. If you
 # geared it, put the ratio here or the distance will be wrong.
