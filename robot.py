@@ -76,17 +76,14 @@ class Robot:
 
         self.led_control = Led(self.hub)
 
-        # Runs from the web planner drive with this rather than the follow
-        # loop in trajectory.py. Both can live in one program: a follow-loop
-        # run's dc() calls simply take the motors back (seen on the hub in
-        # drivebase_test.py, where test G ran after a DriveBase existed).
+        # Every run drives with this. Pybricks allows one DriveBase per motor
+        # for the whole program, so it is made once, here, from config.py.
+        # (Direct dc() calls, as teleop.py makes, still take the motors back.)
         self.drive_base = DriveBase(self.leftDrive, self.rightDrive,
                                     config.WHEEL_DIAMETER_MM, config.AXLE_TRACK_MM)
         self.drive_base.use_gyro(True)
         self._geometry = (config.WHEEL_DIAMETER_MM, config.AXLE_TRACK_MM)
         self._default_settings = self.drive_base.settings()
-
-        self.PID_multiplier = config.PID_MULTIPLIER
 
         self.frequency_timer = StopWatch()
         self.start_loop_time = 0

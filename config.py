@@ -77,17 +77,3 @@ RIGHT_TASK_DIRECTION = Direction.COUNTERCLOCKWISE
 # a second C at 55.6 / 160.1: 360.2 for 360.
 WHEEL_DIAMETER_MM = 55.6
 AXLE_TRACK_MM = 160.1
-
-
-# --- derived ----------------------------------------------------------------
-# Sign of the heading correction, consumed by Trajectory.follow().
-#
-# This used to be derived from LEFT_WHEEL_DIRECTION, which only made sense
-# while both sides were forced to share a Direction. Now that they differ --
-# as they must on a mirrored drivetrain -- neither side's Direction says
-# anything about which way the robot steers, so it is set explicitly.
-#
-# 1 is right whenever positive power drives both wheels forward. If a
-# trajectory veers off its line harder and harder instead of settling onto it,
-# the correction is fighting the robot: set this to -1.
-PID_MULTIPLIER = 1

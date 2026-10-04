@@ -123,7 +123,7 @@ def main():
     print("clear about 1.5m ahead of the robot")
 
     print("this drives raw power with NO gyro correction, so some curve is")
-    print("normal -- Trajectory.follow() is what straightens a real run")
+    print("normal -- the DriveBase's gyro correction straightens a real run")
 
     speeds = []
     imbalances = []
@@ -169,11 +169,11 @@ def main():
         print("\n{0:.0f}% is more than motor-to-motor variation.".format(
             abs(imbalance)))
         print("Check for a rubbing wheel, a tight axle, uneven weight, or two")
-        print("different motor types on the drive. The heading PID can hide")
+        print("different motor types on the drive. The gyro correction can hide")
         print("this, but it spends its correction range doing so.")
 
-    print("\nput this in PythFinder, constants.py:")
-    print("    fll_real_max_velocity = {0:.1f}".format(average))
+    print("\nput this in the planner's robot profile, as top speed (cm/s):")
+    print("    {0:.1f}".format(average))
     print("\nThe three stretches above are parts of one run: the robot speeds")
     print("up, then holds speed for the TIMED window, then brakes. Only the")
     print("middle one sets the speed; all three add up to 'total'.")
