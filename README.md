@@ -188,6 +188,15 @@ selector = RunSelector(
 `RunSelector` also takes `labels=['X', 'Y', 'Z']` if you would rather not use
 A, B, C.
 
+**Keep the planner's own copy too.** The `.py` is what the hub drives; the
+`.json` from the planner's **Export .json** is what you can open and change
+later. `planner/` holds them for the runs in `runs.py` -- **Import .json** in
+the planner to pick one up. (`run_a.json` and `run_square.json` were recovered
+from their old recorded files, which keep only the moves, not where on the mat
+they started: both are placed at the left launch, and `run_a`'s real start
+must have been further in, since from there the planner says it goes off the
+table. Set its Start to wherever the robot really goes.)
+
 ### What a run file looks like
 
 A downloaded run is short enough to read, and worth reading:
