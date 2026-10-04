@@ -28,16 +28,19 @@ HUB_FRONT_SIDE = Axis.X
 # --- motors -----------------------------------------------------------------
 # The Prime hub has six identical ports, A through F. Unlike the EV3 there is
 # no separate set of sensor ports -- sensors go in the same A-F ports.
-LEFT_WHEEL_PORT = Port.C
-RIGHT_WHEEL_PORT = Port.D
+# Rebuilt base, 2026-09-27: the wheels moved from C/D to F/B.
+LEFT_WHEEL_PORT = Port.F
+RIGHT_WHEEL_PORT = Port.B
 
 LEFT_TASK_PORT = Port.A
 RIGHT_TASK_PORT = Port.E
 
 
 # --- sensors ----------------------------------------------------------------
-COLOR_SENSOR_LEFT_PORT = Port.B
-COLOR_SENSOR_RIGHT_PORT = Port.F
+# The rebuilt base has no colour sensors (they were on B and F, which the
+# wheels now use).
+COLOR_SENSOR_LEFT_PORT = None
+COLOR_SENSOR_RIGHT_PORT = None
 
 # A third color sensor used to auto-identify the mounted attachment.
 ATTACHMENT_COLOR_SENSOR_PORT = None
@@ -64,12 +67,16 @@ RIGHT_TASK_DIRECTION = Direction.COUNTERCLOCKWISE
 # for a run without one -- but they are what drivebase_test.py measures, so
 # keep them up to date.
 #
-# These are the OLD base's, measured before the rebuild (PythFinder's
-# docs/web-planner.md, step 5.1): re-measure with drivebase_test.py's B and C.
 # A turn depends on axle track / wheel diameter, so when the wheel number
 # changes, scale the axle track with it.
-WHEEL_DIAMETER_MM = 54.6
-AXLE_TRACK_MM = 165.8
+#
+# Rebuilt base, 2026-09-27. Wheel: B three times at 54.6 (the old base's)
+# went 40 1/4, 40, 40 in -- mean 1018 mm -- so 54.6 x 1.018. Axle track: C at
+# 55.6 / 168.8 (the old base's number, scaled) turned 379.6 for 360, so
+# 168.8 x 360 / 379.6 -- this base is narrower than the old one. Checked by
+# a second C at 55.6 / 160.1: 360.2 for 360.
+WHEEL_DIAMETER_MM = 55.6
+AXLE_TRACK_MM = 160.1
 
 
 # --- derived ----------------------------------------------------------------
