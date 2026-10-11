@@ -31,7 +31,10 @@ def start_run():
 
 
 def stop_run():
-    ...
+    # A run's last move leaves the DriveBase holding its position and heading,
+    # so it would fight you while you line up the next run. stop() lets the
+    # wheels coast; the next run's configure()/set_heading() takes over again.
+    core.drive_base.stop()
 
 
 # --- one function per run ---------------------------------------------------
