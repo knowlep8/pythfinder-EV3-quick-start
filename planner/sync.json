@@ -1,0 +1,17 @@
+{
+  "pythfinder": "~/PythFinder",
+  "runs": {
+    "run_a.py": {
+      "owner": "Joey",
+      "name": "run_a"
+    },
+    "run_b.py": {
+      "owner": "Joey",
+      "name": "run_b"
+    },
+    "run_c.py": {
+      "owner": "Paul",
+      "name": "run_c"
+    }
+  }
+}
