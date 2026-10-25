@@ -18,6 +18,8 @@ from run_selector import RunSelector
 # `import run_a` and `def run_a()` would be the same name, and the function
 # would replace the module.
 import run_a as planned_a
+import run_b as planned_b
+import run_c as planned_c
 import run_square
 
 
@@ -43,11 +45,11 @@ def run_a():
 
 
 def run_b():
-    wait(1000)
+    planned_b.run(core)
 
 
 def run_c():
-    wait(1000)
+    planned_c.run(core)
 
 
 def run_d():

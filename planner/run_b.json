@@ -1,0 +1,49 @@
+{
+  "name": "run_b",
+  "steps_ms": 6,
+  "version": 3,
+  "steps": [
+    {
+      "type": "drive",
+      "cm": 1
+    },
+    {
+      "type": "turn",
+      "deg": 90
+    },
+    {
+      "type": "drive",
+      "cm": 76
+    },
+    {
+      "type": "turn",
+      "deg": 5,
+      "actions": []
+    }
+  ],
+  "robot": {
+    "driveBase": {
+      "turn_acceleration": 300,
+      "turn_rate": 150,
+      "wheel_diameter_mm": 55.6,
+      "straight_speed": 200,
+      "straight_acceleration": 400,
+      "use_gyro": true,
+      "axle_track_mm": 160.1
+    },
+    "name": "Team robot",
+    "planning": {
+      "width_cm": 19,
+      "length_cm": 14,
+      "center_offset_cm": -3.5,
+      "track_width_cm": 16,
+      "max_velocity_cm_s": 64.3
+    }
+  },
+  "start": {
+    "name": "Left launch",
+    "x": -48,
+    "head": 0,
+    "y": -89
+  }
+}

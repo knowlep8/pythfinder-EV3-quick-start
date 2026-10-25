@@ -1,0 +1,45 @@
+{
+  "steps": [
+    {
+      "type": "armStep",
+      "motor": "rightTask",
+      "call": "run_angle",
+      "angle": 180,
+      "speed": 500,
+      "actions": [
+        {
+          "id": "amved5er71",
+          "label": "Move arm"
+        }
+      ]
+    }
+  ],
+  "version": 3,
+  "start": {
+    "y": 89,
+    "x": -49,
+    "name": "thelanch",
+    "head": 0
+  },
+  "name": "run_c",
+  "steps_ms": 6,
+  "robot": {
+    "planning": {
+      "center_offset_cm": -3.5,
+      "width_cm": 19,
+      "max_velocity_cm_s": 64.3,
+      "length_cm": 14,
+      "track_width_cm": 16
+    },
+    "driveBase": {
+      "turn_acceleration": 300,
+      "use_gyro": true,
+      "wheel_diameter_mm": 55.6,
+      "axle_track_mm": 160.1,
+      "straight_acceleration": 400,
+      "turn_rate": 150,
+      "straight_speed": 200
+    },
+    "name": "Team robot"
+  }
+}
